@@ -68,7 +68,7 @@ decides the outcome.
 
 ## Recording checklist
 
-- [ ] Backend running (`uvicorn main:app --port 8000`) and frontend (`npm run dev`) before recording
+- [ ] Backend running (`python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000`) and frontend (`npm run dev`) before recording
 - [ ] `MOCK_MODE=false` and one successful DeepSeek round-trip tested **before** recording (fallback: flip to `true`, demo still works)
 - [ ] Browser at 100% zoom, no bookmarks bar; both phone frames visible
 - [ ] Record at 1080p (OBS or Xbox Game Bar `Win+Alt+R`), crop to the app window
