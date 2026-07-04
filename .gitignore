@@ -1,0 +1,53 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables (contains secrets)
+.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data files (keep structure, ignore contents)
+data/*
+!data/.gitkeep
+
+# Model files / large binaries
+*.pkl
+*.h5
+*.gguf
+*.bin
+models/
+
+# Logs
+*.log
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Node / Next.js (frontend)
+node_modules/
+.next/
+out/
+.env.local
+.env*.local
+next-env.d.ts

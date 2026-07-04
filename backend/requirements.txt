@@ -1,0 +1,5 @@
+# BursaLink AI — D-Day dependencies (kept deliberately minimal)
+fastapi>=0.115.0
+uvicorn>=0.30.0
+openai>=1.40.0          # DeepSeek is OpenAI-compatible (base_url=https://api.deepseek.com)
+python-dotenv>=1.0.0

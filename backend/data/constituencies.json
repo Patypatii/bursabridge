@@ -1,0 +1,133 @@
+[
+  {
+    "id": "ol-kalou",
+    "name": "Ol-Kalou",
+    "county": "Nyandarua",
+    "ref_prefix": "OKL",
+    "bursary_window": { "opens": "2026-07-12", "closes": "2026-07-25" },
+    "required_documents": [
+      "Admission Letter",
+      "Fee Structure",
+      "Chief Recommendation",
+      "National ID (Guardian)"
+    ],
+    "eligibility_notes": "Open to secondary and tertiary students whose parent or guardian resides in Ol-Kalou constituency. Priority is given to orphans, students with disabilities, and low-income households.",
+    "office": {
+      "location": "Ol Kalou town, opposite the sub-county offices",
+      "phone": "+254 700 000 001",
+      "hours": "Mon-Fri 8:00-16:00"
+    },
+    "faqs": [
+      {
+        "q": "Can a student studying outside the county apply?",
+        "a": "Yes. A parent or guardian resident in the constituency applies and tracks the application locally while the student stays in session."
+      },
+      {
+        "q": "Do I need to pay anything to apply?",
+        "a": "No. NG-CDF bursary application is completely free. Report anyone asking for a fee to the CDF office."
+      }
+    ]
+  },
+  {
+    "id": "mwala",
+    "name": "Mwala",
+    "county": "Machakos",
+    "ref_prefix": "MWL",
+    "bursary_window": { "opens": "2026-07-15", "closes": "2026-07-29" },
+    "required_documents": [
+      "Admission Letter",
+      "Fee Structure",
+      "Chief Recommendation",
+      "National ID (Guardian)",
+      "Birth Certificate (Student)"
+    ],
+    "eligibility_notes": "Open to secondary, college and university students from Mwala constituency. Priority to total and partial orphans and needy households.",
+    "office": {
+      "location": "Mwala town, NG-CDF offices along Wamunyu-Mwala road",
+      "phone": "+254 700 000 002",
+      "hours": "Mon-Fri 8:00-17:00"
+    },
+    "faqs": [
+      {
+        "q": "Can I also apply on the Mwala online portal?",
+        "a": "Yes, Mwala has an online portal, but paper applications at the CDF office are equally valid. Use whichever channel you can access."
+      }
+    ]
+  },
+  {
+    "id": "garissa-township",
+    "name": "Garissa Township",
+    "county": "Garissa",
+    "ref_prefix": "GRT",
+    "bursary_window": { "opens": "2026-07-08", "closes": "2026-07-22" },
+    "required_documents": [
+      "Admission Letter",
+      "Fee Structure",
+      "Chief Recommendation",
+      "National ID (Guardian)",
+      "Birth Certificate (Student)"
+    ],
+    "eligibility_notes": "Open to secondary and tertiary students resident in Garissa Township. Priority to orphans, students with disabilities, and households affected by drought.",
+    "office": {
+      "location": "Garissa town, NG-CDF building near the county assembly",
+      "phone": "+254 700 000 003",
+      "hours": "Mon-Fri 8:00-16:00"
+    },
+    "faqs": [
+      {
+        "q": "Is the application available in Kiswahili?",
+        "a": "Yes. Forms and help are available in both Kiswahili and English at the CDF office, and this service supports both languages."
+      }
+    ]
+  },
+  {
+    "id": "kieni",
+    "name": "Kieni",
+    "county": "Nyeri",
+    "ref_prefix": "KNI",
+    "bursary_window": { "opens": "2026-07-20", "closes": "2026-08-03" },
+    "required_documents": [
+      "Admission Letter",
+      "Fee Structure",
+      "Chief Recommendation",
+      "National ID (Guardian)"
+    ],
+    "eligibility_notes": "Open to secondary and tertiary students from Kieni constituency. Priority to orphans and low-income households.",
+    "office": {
+      "location": "Kiganjo town, NG-CDF offices next to the DCC office",
+      "phone": "+254 700 000 004",
+      "hours": "Mon-Fri 8:30-16:30"
+    },
+    "faqs": [
+      {
+        "q": "My child joined school mid-term. Can I still apply?",
+        "a": "Yes, as long as the application window is open and you attach the admission letter and fee structure."
+      }
+    ]
+  },
+  {
+    "id": "mathira",
+    "name": "Mathira",
+    "county": "Nyeri",
+    "ref_prefix": "MTH",
+    "bursary_window": { "opens": "2026-07-18", "closes": "2026-08-01" },
+    "required_documents": [
+      "Admission Letter",
+      "Fee Structure",
+      "Chief Recommendation",
+      "National ID (Guardian)"
+    ],
+    "eligibility_notes": "Open to secondary, college and university students from Mathira constituency. Priority to orphans, students with disabilities, and needy households.",
+    "office": {
+      "location": "Karatina town, NG-CDF offices near the law courts",
+      "phone": "+254 700 000 005",
+      "hours": "Mon-Fri 8:00-16:00"
+    },
+    "faqs": [
+      {
+        "q": "How will I know the outcome of my application?",
+        "a": "You will receive an SMS when your status changes, and you can check anytime by dialling *123# and choosing Check Application Status."
+      }
+    ]
+  }
+]
