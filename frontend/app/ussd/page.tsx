@@ -101,9 +101,9 @@ export default function UssdPage() {
   }
 
   return (
-    <div className="flex w-full flex-col items-center gap-6 px-6 py-3 lg:h-[calc(100vh-5.5rem)] lg:flex-row lg:items-stretch lg:justify-center xl:gap-10 xl:px-12">
+    <div className="flex w-full flex-col items-center gap-5 px-4 py-3 lg:h-[calc(100vh-5.5rem)] lg:flex-row lg:items-stretch lg:justify-center lg:gap-4 xl:px-6">
       {/* ------------------------------------------- left: explainer (fills left space) */}
-      <div className="flex w-full max-w-sm flex-col justify-center gap-5 lg:max-w-none lg:flex-1">
+      <div className="flex w-full max-w-sm flex-col justify-center gap-5 lg:max-w-none lg:basis-[15%] lg:overflow-y-auto">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 xl:text-3xl">
             USSD Interface <span className="text-green-700">(Feature Phone)</span>
@@ -145,7 +145,7 @@ export default function UssdPage() {
       </div>
 
       {/* ------------------------------------------- centre: full-height feature phone */}
-      <div className="flex h-[calc(100vh-5.5rem)] min-h-140 w-85 max-w-full shrink-0 flex-col rounded-4xl bg-gray-900 p-4 shadow-2xl">
+      <div className="flex h-[calc(100vh-5.5rem)] min-h-140 w-full max-w-full shrink-0 flex-col rounded-4xl bg-gray-900 p-4 shadow-2xl lg:basis-[70%]">
         <div className="mx-auto mb-3 h-1.5 w-16 shrink-0 rounded-full bg-gray-700" />
         {/* screen */}
         <div className="flex flex-1 flex-col overflow-hidden rounded-lg bg-[#cfe3c4] p-4 font-mono text-[15px] leading-relaxed text-gray-900">
@@ -245,7 +245,7 @@ export default function UssdPage() {
       </div>
 
       {/* ------------------------------------------- right: options + gateway log (fills right space) */}
-      <div className="flex w-full max-w-sm flex-col justify-center gap-5 lg:h-full lg:max-w-none lg:flex-1">
+      <div className="flex w-full max-w-sm flex-col justify-center gap-5 lg:h-full lg:max-w-none lg:basis-[15%] lg:overflow-y-auto">
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <h2 className="mb-2 text-sm font-bold text-gray-800">USSD OPTIONS OVERVIEW</h2>
           {OPTIONS.map(([Icon, title, sub]) => (

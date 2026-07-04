@@ -421,9 +421,9 @@ export default function ChatPage() {
         )}. For help, dial *123#`;
 
   return (
-    <div className="flex w-full flex-col items-center gap-6 px-6 py-3 lg:h-[calc(100vh-5.5rem)] lg:flex-row lg:items-stretch lg:justify-center xl:gap-10 xl:px-12">
+    <div className="flex w-full flex-col items-center gap-5 px-4 py-3 lg:h-[calc(100vh-5.5rem)] lg:flex-row lg:items-stretch lg:justify-center lg:gap-4 xl:px-6">
       {/* ------------------------------------------------ left: intro (fills left space) */}
-      <div className="flex w-full max-w-sm flex-col justify-center gap-4 lg:max-w-none lg:flex-1">
+      <div className="flex w-full max-w-sm flex-col justify-center gap-4 lg:max-w-none lg:basis-[15%] lg:overflow-y-auto">
         <div>
           <h1 className="text-2xl font-bold leading-snug text-gray-900 xl:text-3xl">
             Your bridge to <span className="text-green-700">NG-CDF bursary</span> information.
@@ -572,7 +572,7 @@ export default function ChatPage() {
       </div>
 
       {/* ------------------------------------------------ centre: full-height phone */}
-      <div className="flex h-[calc(100vh-5.5rem)] min-h-140 w-100 max-w-full shrink-0 flex-col overflow-hidden rounded-[2.5rem] border-10 border-gray-900 bg-white shadow-2xl">
+      <div className="flex h-[calc(100vh-5.5rem)] min-h-140 w-full max-w-full shrink-0 flex-col overflow-hidden rounded-[2.5rem] border-10 border-gray-900 bg-white shadow-2xl lg:basis-[70%]">
         <div className="flex items-center justify-between px-5 pt-2 text-[10px] text-gray-500">
           <span>9:04</span>
           <span className="flex items-center gap-1.5">
@@ -776,8 +776,8 @@ export default function ChatPage() {
       </div>
 
       {/* ------------------------------------------------ right: SMS outbox (fills right space) */}
-      <div className="flex w-full max-w-sm flex-col justify-center lg:max-w-none lg:flex-1">
-        <div className="mx-auto flex h-full max-h-[calc(100vh-5.5rem)] w-full max-w-xs flex-col lg:max-w-sm">
+      <div className="flex w-full max-w-sm flex-col justify-center lg:max-w-none lg:basis-[15%]">
+        <div className="mx-auto flex h-full max-h-[calc(100vh-5.5rem)] w-full flex-col">
           <h2 className="mb-3 text-sm font-bold text-green-800">
             SAMPLE SMS RECEIVED <span className="font-normal text-gray-400">(mocked)</span>
           </h2>
