@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   BatteryFull,
   Bell,
-  Calendar,
-  ChevronRight,
   Check,
   Eye,
   FileSearch,
@@ -187,11 +185,67 @@ const toApiHistory = (items: Msg[]) =>
     })
     .slice(-8);
 
-const statusStyles: Record<Bursary["status"], string> = {
-  open: "bg-[var(--ngcdf-green-soft)] text-[var(--ngcdf-green-dark)]",
-  upcoming: "bg-amber-100 text-amber-800",
-  closed: "bg-gray-100 text-gray-600",
-};
+function ConstituencySearchSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const selected = CONSTITUENCIES.find(([id]) => id === value);
+  const selectedName = selected?.[1] ?? "";
+  const [query, setQuery] = useState(selectedName);
+  const [open, setOpen] = useState(false);
+  const filtered = CONSTITUENCIES.filter(([, name]) =>
+    name.toLowerCase().includes(query.trim().toLowerCase())
+  );
+
+  return (
+    <div className="relative">
+      <div className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 focus-within:border-[var(--ngcdf-green)] focus-within:ring-2 focus-within:ring-[var(--ngcdf-green-soft)]">
+        <Search size={24} className="shrink-0 text-[var(--ngcdf-green)]" />
+        <input
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+          placeholder="Search constituency..."
+          className="min-w-0 flex-1 bg-transparent text-xl font-medium text-gray-800 outline-none placeholder:text-gray-400"
+        />
+      </div>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-xl">
+          {filtered.map(([id, name]) => (
+            <button
+              key={id}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                onChange(id);
+                setQuery(name);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center justify-between rounded-md px-3 py-3 text-left text-xl font-medium ${
+                id === value
+                  ? "bg-[var(--ngcdf-green-soft)] text-[var(--ngcdf-green-dark)]"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <span>{name}</span>
+              {id === value && <Check size={20} className="text-[var(--ngcdf-green)]" />}
+            </button>
+          ))}
+          {filtered.length === 0 && (
+            <p className="px-3 py-3 text-lg text-gray-500">No constituency found.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ---------------- animated status tracker (one screen per stage) ---------------- */
 
@@ -287,8 +341,6 @@ export default function ChatPage() {
   const [ref, setRef] = useState("OKL-2026-0142");
   const [outbox, setOutbox] = useState<Sms[]>([]);
   const [bursaries, setBursaries] = useState<Bursary[]>([]);
-  const [bursaryError, setBursaryError] = useState(false);
-  const [selectedBursaryId, setSelectedBursaryId] = useState<string | null>(null);
   const [lastSource, setLastSource] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const t = STRINGS[language];
@@ -305,34 +357,13 @@ export default function ChatPage() {
       })
       .then((data) => {
         setBursaries(data.bursaries ?? []);
-        setBursaryError(false);
       })
-      .catch(() => setBursaryError(true));
+      .catch(() => setBursaries([]));
   }, []);
 
   const push = (m: Msg) => setMessages((prev) => [...prev, m]);
   const replaceProcessing = (m: Msg) =>
     setMessages((prev) => prev.map((x) => (x.kind === "processing" ? m : x)));
-
-  function showBursaryDetails(bursary: Bursary) {
-    setConstituency(bursary.id);
-    setSelectedBursaryId(bursary.id);
-    push({
-      kind: "answer",
-      text:
-        language === "sw"
-          ? `${bursary.name} inaonyesha dirisha la maombi, nyaraka, na mawasiliano hapa chini.`
-          : `${bursary.name} bursary details are ready below: application window, documents, eligibility, and office contact.`,
-      details: {
-        constituency: bursary.name,
-        opens: bursary.opens,
-        closes: bursary.closes,
-        required_documents: bursary.required_documents,
-      },
-      source: "sample_bursary_list",
-    });
-    setLastSource("sample_bursary_list");
-  }
 
   async function send() {
     const text = input.trim();
@@ -434,17 +465,11 @@ export default function ChatPage() {
 
         <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-6">
           <label className="block text-lg font-semibold text-gray-500">CONSTITUENCY</label>
-          <select
+          <ConstituencySearchSelect
+            key={constituency}
             value={constituency}
-            onChange={(e) => setConstituency(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-xl"
-          >
-            {CONSTITUENCIES.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
+            onChange={setConstituency}
+          />
           <label className="block text-lg font-semibold text-gray-500">LANGUAGE / LUGHA</label>
           <div className="flex overflow-hidden rounded-lg border border-gray-300 text-xl">
             {(["en", "sw"] as const).map((l) => (

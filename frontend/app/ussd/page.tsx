@@ -2,15 +2,9 @@
 
 import { useState } from "react";
 import {
-  Calendar,
   Delete,
-  FileText,
-  Globe,
-  HelpCircle,
-  Phone,
   PhoneCall,
   PhoneOff,
-  Search,
   Signal,
 } from "lucide-react";
 
@@ -19,21 +13,10 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 const NUMERIC_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"];
 const ALPHA_ROWS = ["1234567890", "QWERTYUIOP", "ASDFGHJKL-", "ZXCVBNM"];
 
-const OPTIONS = [
-  [Calendar, "1 Upcoming Deadlines", "Opening & closing dates"],
-  [FileText, "2 Required Documents", "Everything you need to apply"],
-  [Search, "3 Check Application Status", "Where your application is"],
-  [HelpCircle, "4 FAQs", "Answers to common questions"],
-  [Phone, "5 Contact Office", "Location & phone numbers"],
-  [Globe, "6 Language", "English / Kiswahili"],
-] as const;
-
 const SMS_PREVIEWS = [
   "Hello! This is a reminder from BursaBridge. Ol-Kalou NG-CDF bursary applications open on 12 July 2026. For help, dial *123#",
   "BursaBridge update: Ref OKL-2026-0142 is Review in Progress. Estimated completion: 6 days.",
 ] as const;
-
-type LogEntry = { req: string; res: string };
 
 export default function UssdPage() {
   const [dial, setDial] = useState("");
@@ -41,7 +24,6 @@ export default function UssdPage() {
   const [ended, setEnded] = useState(false);
   const [parts, setParts] = useState<string[]>([]);
   const [reply, setReply] = useState("");
-  const [log, setLog] = useState<LogEntry[]>([]);
   const [busy, setBusy] = useState(false);
 
   const inSession = screen !== null && !ended;
@@ -57,10 +39,6 @@ export default function UssdPage() {
         body: JSON.stringify({ session_id: "SIM_1", phone: "+254712345678", text }),
       });
       const raw = await res.text();
-      setLog((l) => [
-        ...l,
-        { req: JSON.stringify({ text }), res: raw.slice(0, 60) + (raw.length > 60 ? "…" : "") },
-      ]);
       setEnded(raw.startsWith("END"));
       setScreen(raw.replace(/^(CON|END)\s/, ""));
     } catch {

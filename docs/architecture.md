@@ -12,6 +12,100 @@ The project is split into two apps: a **Next.js frontend** (UI/UX, port 3000)
 and a **FastAPI backend** (API + AI module, port 8000). They talk over HTTP
 (JSON); the frontend never holds the API key.
 
+### Rendered system map
+
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Inter, Segoe UI, Arial", "primaryColor": "#eaf5ee", "primaryTextColor": "#111827", "primaryBorderColor": "#006b3f", "lineColor": "#006b3f", "secondaryColor": "#fff1f2", "tertiaryColor": "#f8faf4"}}}%%
+flowchart LR
+    CitizenWeb["Smartphone citizen<br/>Web chat"]
+    CitizenUssd["Feature-phone citizen<br/>Dials *123#"]
+
+    subgraph Frontend["Next.js frontend :3000"]
+        ChatUI["Web chat preview<br/>large phone UI"]
+        UssdUI["USSD simulator<br/>keypad + session screen"]
+        SmsUI["SMS preview<br/>outbox panel"]
+    end
+
+    subgraph Backend["FastAPI backend :8000"]
+        ChatAPI["POST /api/chat"]
+        UssdAPI["POST /api/ussd"]
+        RemindAPI["POST /api/remind"]
+        StatusAPI["GET /api/status/{ref}"]
+        OutboxAPI["GET /api/outbox"]
+        AI["AI module<br/>intent + RAG-lite"]
+    end
+
+    subgraph Data["Demo data layer"]
+        KB[("constituencies.json<br/>windows, docs, offices")]
+        Apps[("applications.json<br/>status records")]
+        Queue[("memory queue<br/>reminders + SMS outbox")]
+    end
+
+    subgraph External["External / later integration"]
+        DeepSeek["DeepSeek LLM<br/>OpenAI-compatible API"]
+        Telco["Africa's Talking<br/>USSD + SMS"]
+    end
+
+    CitizenWeb --> ChatUI
+    CitizenUssd --> UssdUI
+    ChatUI -->|"JSON over HTTP"| ChatAPI
+    UssdUI -->|"CON / END protocol"| UssdAPI
+    ChatUI --> RemindAPI
+    ChatUI --> StatusAPI
+    SmsUI --> OutboxAPI
+
+    ChatAPI --> AI
+    UssdAPI --> AI
+    AI --> KB
+    AI --> DeepSeek
+    StatusAPI --> Apps
+    RemindAPI --> Queue
+    OutboxAPI --> Queue
+    Queue --> SmsUI
+
+    Telco -. production callback .-> UssdAPI
+    Queue -. production SMS .-> Telco
+
+    classDef citizen fill:#ffffff,stroke:#111827,color:#111827,stroke-width:2px;
+    classDef frontend fill:#eaf5ee,stroke:#006b3f,color:#004b2c,stroke-width:2px;
+    classDef backend fill:#ffffff,stroke:#006b3f,color:#111827,stroke-width:2px;
+    classDef data fill:#f8faf4,stroke:#6b7280,color:#111827,stroke-width:1.5px;
+    classDef external fill:#fff1f2,stroke:#bb1e2d,color:#7f1d1d,stroke-width:2px;
+
+    class CitizenWeb,CitizenUssd citizen;
+    class ChatUI,UssdUI,SmsUI frontend;
+    class ChatAPI,UssdAPI,RemindAPI,StatusAPI,OutboxAPI,AI backend;
+    class KB,Apps,Queue data;
+    class DeepSeek,Telco external;
+```
+
+### Channel data flow
+
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Inter, Segoe UI, Arial", "primaryColor": "#eaf5ee", "primaryBorderColor": "#006b3f", "lineColor": "#006b3f", "actorBorder": "#006b3f", "actorBkg": "#ffffff", "activationBkgColor": "#eaf5ee", "activationBorderColor": "#006b3f"}}}%%
+sequenceDiagram
+    autonumber
+    actor Citizen
+    participant Frontend as Next.js UI
+    participant Backend as FastAPI API
+    participant Data as JSON knowledge base
+    participant AI as DeepSeek / MOCK_MODE
+    participant SMS as SMS preview
+
+    Citizen->>Frontend: Ask question or dial *123#
+    Frontend->>Backend: Send channel, language, constituency, text
+    Backend->>Data: Retrieve constituency and status records
+    Data-->>Backend: Deadlines, documents, office, FAQs
+    Backend->>AI: Grounded prompt with retrieved data
+    AI-->>Backend: Clear citizen-facing response
+    Backend-->>Frontend: Same-channel answer
+    Frontend-->>Citizen: Chat bubble or USSD screen
+    Citizen->>Frontend: Click Notify Me
+    Frontend->>Backend: POST /api/remind
+    Backend->>SMS: Render exact reminder message
+    SMS-->>Frontend: GET /api/outbox
+```
+
 ```
         CITIZEN CHANNELS                NEXT.JS FRONTEND (:3000)         FASTAPI BACKEND (:8000)                EXTERNAL
      (input = output channel)
@@ -53,6 +147,112 @@ to DeepSeek with a grounding system prompt → response is formatted for the
 originating channel (rich chat bubble with buttons, or a short USSD screen)
 → returned **on the same channel**. "Notify Me" writes a `Reminder`; the
 SMS outbox panel renders exactly the SMS that would be sent.
+
+### Data-flow diagrams
+
+These diagrams use **Mermaid**, which GitHub renders inside Markdown without
+installing a frontend package. For the final pitch deck, the same Mermaid
+blocks can also be pasted into Eraser for a cleaner visual export.
+
+#### Web chat answer flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Citizen
+    participant Web as Next.js web chat
+    participant API as FastAPI backend
+    participant KB as Constituency JSON KB
+    participant LLM as DeepSeek LLM
+
+    Citizen->>Web: Ask bursary question
+    Web->>API: POST /api/chat
+    API->>API: Detect intent, language, constituency
+    API->>KB: Retrieve matching constituency record
+    KB-->>API: Window, documents, office, FAQs
+    API->>LLM: Grounded prompt + citizen question
+    LLM-->>API: Natural-language answer
+    API-->>Web: AssistantResponse JSON
+    Web-->>Citizen: Chat bubble + actions
+```
+
+#### USSD session flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Citizen
+    participant Phone as Browser USSD phone
+    participant API as FastAPI backend
+    participant KB as Constituency JSON KB
+
+    Citizen->>Phone: Dial *123#
+    Phone->>API: POST /api/ussd {session_id, phone, text}
+    API-->>Phone: CON main menu
+    Citizen->>Phone: Choose language / constituency / query
+    Phone->>API: POST /api/ussd with accumulated text
+    API->>KB: Look up constituency data
+    KB-->>API: Deadline, documents, contacts
+    API-->>Phone: CON menu or END final answer
+    Phone-->>Citizen: Same-channel USSD screen
+```
+
+#### Reminder and SMS preview flow
+
+```mermaid
+flowchart LR
+    Citizen[Citizen clicks Notify Me] --> Web[Next.js frontend]
+    Web -->|POST /api/remind| API[FastAPI backend]
+    API --> Reminder[In-memory reminder queue]
+    API --> Outbox[Mock SMS outbox]
+    Web -->|GET /api/outbox| Outbox
+    Outbox --> Preview[On-screen SMS preview]
+
+    Reminder -. later .-> Scheduler[Cron or queue]
+    Scheduler -. later .-> SMS[Africa's Talking SMS API]
+    SMS -. later .-> CitizenPhone[Citizen phone]
+```
+
+#### Data stores and trust boundary
+
+```mermaid
+flowchart TB
+    subgraph Browser["Citizen browser - no API keys"]
+        Chat[Web chat UI]
+        Ussd[USSD simulator UI]
+        SmsPreview[SMS preview panel]
+    end
+
+    subgraph Server["FastAPI backend - trusted server side"]
+        Routes[API routes]
+        AI[AI module / RAG-lite]
+        Reminder[Reminder engine]
+        Status[Status lookup]
+    end
+
+    subgraph LocalData["Demo data today"]
+        Constituencies[(constituencies.json)]
+        Applications[(applications.json)]
+        Memory[(In-memory reminders/outbox)]
+    end
+
+    subgraph External["External services"]
+        DeepSeek[DeepSeek chat API]
+        Telco[Later: Africa's Talking USSD/SMS]
+    end
+
+    Chat --> Routes
+    Ussd --> Routes
+    Routes --> AI
+    AI --> Constituencies
+    AI --> DeepSeek
+    Routes --> Reminder
+    Reminder --> Memory
+    Routes --> Status
+    Status --> Applications
+    Memory --> SmsPreview
+    Routes -. production .-> Telco
+```
 
 ### How the USSD demo works (no telco needed)
 
