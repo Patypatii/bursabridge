@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f5f2;
+  --background: #f8faf4;
   --foreground: #171717;
+  --ngcdf-green: #006b3f;
+  --ngcdf-green-dark: #004b2c;
+  --ngcdf-green-soft: #eaf5ee;
+  --ngcdf-red: #bb1e2d;
+  --ngcdf-red-soft: #fff1f2;
+  --ngcdf-ink: #111827;
 }
 
 @theme inline {
@@ -58,7 +64,7 @@ body {
     box-shadow: 0 0 0 0 rgba(21, 128, 61, 0.35);
   }
   50% {
-    box-shadow: 0 0 0 12px rgba(21, 128, 61, 0);
+    box-shadow: 0 0 0 12px rgba(0, 107, 63, 0);
   }
 }
 

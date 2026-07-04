@@ -106,11 +106,11 @@ export default function UssdPage() {
       <div className="flex w-full max-w-sm flex-col justify-center gap-5 lg:max-w-none lg:basis-[15%] lg:overflow-y-auto">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 xl:text-3xl">
-            USSD Interface <span className="text-green-700">(Feature Phone)</span>
+            USSD Interface <span className="text-[var(--ngcdf-green)]">(Feature Phone)</span>
           </h1>
           <p className="mt-3 text-sm text-gray-600 xl:text-base">
             Dial <span className="font-mono font-bold">*123#</span> and press{" "}
-            <span className="font-semibold text-green-700">Call</span>. Works exactly like an
+            <span className="font-semibold text-[var(--ngcdf-green)]">Call</span>. Works exactly like an
             M-Pesa session — numbered menus, no internet, no smartphone.
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function UssdPage() {
             this step.
           </p>
         </div>
-        <p className="rounded-lg border border-green-200 bg-green-50 p-3 text-xs text-green-900">
+        <p className="rounded-lg border border-[var(--ngcdf-green-soft)] bg-[var(--ngcdf-green-soft)] p-3 text-xs text-[var(--ngcdf-green-dark)]">
           The telco gateway is simulated in the browser (mocked), but every keypress hits{" "}
           <span className="font-mono">POST /api/ussd</span> with the same request a real gateway
           (Africa&apos;s Talking) sends, and the backend replies with the real{" "}
@@ -148,19 +148,19 @@ export default function UssdPage() {
       <div className="flex h-[calc(100vh-5.5rem)] min-h-140 w-full max-w-full shrink-0 flex-col rounded-4xl bg-gray-900 p-4 shadow-2xl lg:basis-[70%]">
         <div className="mx-auto mb-3 h-1.5 w-16 shrink-0 rounded-full bg-gray-700" />
         {/* screen */}
-        <div className="flex flex-1 flex-col overflow-hidden rounded-lg bg-[#cfe3c4] p-4 font-mono text-[15px] leading-relaxed text-gray-900">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-xl border-2 border-[var(--ngcdf-green)] bg-[#f2fbf4] p-5 font-mono text-[17px] font-medium leading-relaxed text-gray-950 shadow-inner">
           {screen === null ? (
             <>
-              <div className="flex items-center gap-1.5 text-[11px] text-gray-600">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ngcdf-green-dark)]">
                 BursaBridge · Kenya <Signal size={11} />
               </div>
-              <div className="flex flex-1 items-center justify-center text-2xl tracking-widest">
-                {dial || <span className="text-base text-gray-500">Dial *123#</span>}
+              <div className="flex flex-1 items-center justify-center text-4xl font-bold tracking-widest text-slate-700">
+                {dial || <span className="rounded-xl border-2 border-[var(--ngcdf-green)] bg-white/70 px-6 py-3 text-2xl text-slate-700 shadow-sm">Dial *123#</span>}
               </div>
             </>
           ) : (
             <>
-              <div key={screen} className="anim-fade-up flex-1 overflow-y-auto whitespace-pre-wrap">
+              <div key={screen} className="anim-fade-up flex-1 overflow-y-auto whitespace-pre-wrap rounded-lg border border-[var(--ngcdf-green-soft)] bg-white/45 p-3">
                 {screen}
               </div>
               {inSession && (
@@ -170,7 +170,7 @@ export default function UssdPage() {
                   onChange={(e) => setReply(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && call()}
                   placeholder="Reply…"
-                  className="mt-2 w-full shrink-0 rounded border border-gray-500 bg-white/70 px-2 py-1.5 text-sm outline-none"
+                  className="mt-3 w-full shrink-0 rounded-lg border-2 border-[var(--ngcdf-green)] bg-white/80 px-3 py-2 text-base font-bold outline-none"
                 />
               )}
               {ended && (
@@ -186,7 +186,7 @@ export default function UssdPage() {
           <button
             onClick={call}
             disabled={busy}
-            className="flex h-12 w-16 items-center justify-center rounded-xl bg-green-600 text-white disabled:opacity-50"
+            className="flex h-12 w-16 items-center justify-center rounded-xl bg-[var(--ngcdf-green)] text-white disabled:opacity-50"
             aria-label="Call / Send"
           >
             {busy ? "…" : <PhoneCall size={22} />}
@@ -246,21 +246,21 @@ export default function UssdPage() {
 
       {/* ------------------------------------------- right: options + gateway log (fills right space) */}
       <div className="flex w-full max-w-sm flex-col justify-center gap-5 lg:h-full lg:max-w-none lg:basis-[15%] lg:overflow-y-auto">
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        {/* <div className="rounded-xl border border-gray-200 bg-white p-4">
           <h2 className="mb-2 text-sm font-bold text-gray-800">USSD OPTIONS OVERVIEW</h2>
           {OPTIONS.map(([Icon, title, sub]) => (
             <div key={title} className="flex items-start gap-2.5 py-1.5">
-              <Icon size={15} className="mt-0.5 shrink-0 text-green-700" />
+              <Icon size={15} className="mt-0.5 shrink-0 text-[var(--ngcdf-green)]" />
               <div>
                 <div className="text-xs font-semibold text-gray-800">{title}</div>
                 <div className="text-[11px] text-gray-500">{sub}</div>
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-bold text-green-800">SMS PREVIEWS</h2>
+          <h2 className="mb-2 text-sm font-bold text-[var(--ngcdf-green-dark)]">SMS PREVIEWS</h2>
           <div className="space-y-2">
             {SMS_PREVIEWS.map((message, i) => (
               <div
@@ -276,8 +276,8 @@ export default function UssdPage() {
           </div>
         </div>
 
-        <div className="flex min-h-48 flex-col rounded-xl bg-gray-900 p-4 lg:flex-1">
-          <h2 className="mb-2 shrink-0 text-xs font-bold text-green-400">
+        {/* <div className="flex min-h-48 flex-col rounded-xl bg-gray-900 p-4 lg:flex-1">
+          <h2 className="mb-2 shrink-0 text-xs font-bold text-[var(--ngcdf-red)]">
             GATEWAY LOG — what a telco would exchange
           </h2>
           <div className="flex-1 space-y-1.5 overflow-y-auto font-mono text-[10px]">
@@ -285,11 +285,11 @@ export default function UssdPage() {
             {log.map((e, i) => (
               <div key={i} className="anim-fade-up">
                 <div className="text-amber-300">→ POST /api/ussd {e.req}</div>
-                <div className="text-green-300">← {e.res}</div>
+                <div className="text-[var(--ngcdf-green-soft)]">← {e.res}</div>
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
