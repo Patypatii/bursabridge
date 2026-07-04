@@ -10,6 +10,7 @@ July 4th, 2026.
 
 import json
 import os
+import re
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -61,12 +62,18 @@ app.add_middleware(
 # Models
 # ---------------------------------------------------------------------------
 
+class HistoryItem(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+
+
 class ChatRequest(BaseModel):
     channel: str = "web"
     session_id: str = ""
     language: str = "en"  # "en" | "sw"
     constituency: str = "ol-kalou"
     text: str
+    history: list[HistoryItem] = []
 
 
 class UssdRequest(BaseModel):
@@ -89,6 +96,12 @@ def fmt_date(iso: str) -> str:
     return datetime.fromisoformat(iso).strftime("%d %B %Y").lstrip("0")
 
 
+def strip_markdown(text: str) -> str:
+    """LLM output goes to chat bubbles and SMS - plain text only."""
+    text = re.sub(r"[*_`#]+", "", text)
+    return re.sub(r"^\s*-\s+", "• ", text, flags=re.M)
+
+
 def detect_constituency(text: str, fallback: str) -> dict:
     lowered = text.lower()
     for record in CONSTITUENCIES.values():
@@ -99,6 +112,16 @@ def detect_constituency(text: str, fallback: str) -> dict:
 
 def detect_intent(text: str) -> str:
     lowered = text.lower()
+    if re.search(
+        r"\b(hello|hi|hey|habari|jambo|mambo|niaje|salama|sasa|karibu|asante"
+        r"|thanks|thank you|good (morning|afternoon|evening)|help|menu|start)\b",
+        lowered,
+    ) and not re.search(
+        r"\b(document|require|need|nyaraka|papers|deadline|open|close|status|track|ref"
+        r"|eligib|qualify|contact|office|where|when|lini|wapi)\b",
+        lowered,
+    ):
+        return "greeting"
     checks = [
         ("status", ["status", "hali", "track", "application went", "ref"]),
         ("deadline_query", ["open", "close", "deadline", "when", "lini", "date", "apply by"]),
@@ -120,6 +143,16 @@ def kb_answer(record: dict, intent: str, language: str) -> str:
     docs = ", ".join(record["required_documents"])
     office = record["office"]
     sw = language == "sw"
+    if intent == "greeting":
+        return (
+            "Karibu! Mimi ni BursaBridge, msaidizi wako wa bursary ya NG-CDF. "
+            "Niulize kuhusu tarehe za maombi, nyaraka zinazohitajika, ustahiki, "
+            "mawasiliano ya ofisi, au hali ya maombi yako."
+            if sw
+            else "Hello! I'm BursaBridge, your NG-CDF bursary assistant. Ask me "
+            "about application deadlines, required documents, eligibility, "
+            "office contacts, or checking your application status."
+        )
     if intent == "deadline_query":
         return (
             f"Maombi ya bursary ya NG-CDF {name} yanafunguliwa tarehe {opens} na kufungwa tarehe {closes}."
@@ -144,7 +177,9 @@ def kb_answer(record: dict, intent: str, language: str) -> str:
     return f"{faq['q']} {faq['a']}"
 
 
-def deepseek_answer(record: dict, question: str, language: str) -> str | None:
+def deepseek_answer(
+    record: dict, question: str, language: str, history: list[HistoryItem]
+) -> str | None:
     """Grounded DeepSeek call. Returns None on any failure so callers fall back."""
     if MOCK_MODE or not DEEPSEEK_API_KEY:
         return None
@@ -154,25 +189,38 @@ def deepseek_answer(record: dict, question: str, language: str) -> str | None:
         client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_BASE_URL)
         reply_lang = "Kiswahili" if language == "sw" else "English"
         system = (
-            "You are BursaBridge, a civic assistant that helps Kenyan parents and "
-            "guardians access NG-CDF bursary information. Answer ONLY using the "
-            "constituency record JSON provided. If the answer is not in the record, "
-            "say you don't have that information and suggest contacting the CDF "
-            f"office. Reply in {reply_lang}, in under 80 words, plainly and warmly. "
+            "You are BursaBridge, a friendly civic assistant helping Kenyan "
+            "parents and guardians access NG-CDF bursary information. You help "
+            "with: application windows and deadlines, required documents, "
+            "eligibility guidance, CDF office contacts, and how to check "
+            "application status. Ground every factual claim in the constituency "
+            "record JSON below; if something is not in the record, say you don't "
+            "have that information and suggest the CDF office. If the user "
+            "greets you or makes small talk, reply warmly in one or two "
+            "sentences and mention what you can help with - do NOT recite "
+            f"deadlines or documents unless asked. Reply in {reply_lang}, in "
+            "under 80 words. Write plain sentences only - no markdown, no "
+            "asterisks, no bullet points, no headings. "
             "Never advise on who deserves funding - committees decide allocations.\n\n"
             f"Constituency record:\n{json.dumps(record)}"
         )
+        past = [
+            {"role": h.role, "content": h.content}
+            for h in history[-8:]
+            if h.role in ("user", "assistant") and h.content.strip()
+        ]
         response = client.chat.completions.create(
             model=DEEPSEEK_MODEL,
             messages=[
                 {"role": "system", "content": system},
+                *past,
                 {"role": "user", "content": question},
             ],
             temperature=0.3,
             max_tokens=300,
             timeout=30,
         )
-        return response.choices[0].message.content.strip()
+        return strip_markdown(response.choices[0].message.content.strip())
     except Exception as exc:  # network down, bad key, rate limit - demo must not break
         print(f"[BursaBridge] DeepSeek call failed, falling back to KB: {exc}")
         return None
@@ -182,17 +230,23 @@ def deepseek_answer(record: dict, question: str, language: str) -> str | None:
 # Web chat — the AI module entry point
 # ---------------------------------------------------------------------------
 
+# Only factual bursary questions get the documents/deadline card;
+# greetings and small talk get a plain conversational answer.
+DETAIL_INTENTS = {"deadline_query", "documents", "eligibility"}
+
+
 @app.post("/api/chat")
 def chat(req: ChatRequest):
     record = detect_constituency(req.text, req.constituency)
     intent = detect_intent(req.text)
 
-    answer = deepseek_answer(record, req.text, req.language)
+    answer = deepseek_answer(record, req.text, req.language, req.history)
     source = "deepseek+kb"
     if answer is None:
         answer = kb_answer(record, intent, req.language)
         source = "kb_only (MOCK_MODE)" if MOCK_MODE else "kb_only (fallback)"
 
+    show_details = intent in DETAIL_INTENTS
     return {
         "session_id": req.session_id or uuid.uuid4().hex[:6],
         "intent": intent,
@@ -202,11 +256,46 @@ def chat(req: ChatRequest):
             "opens": record["bursary_window"]["opens"],
             "closes": record["bursary_window"]["closes"],
             "required_documents": record["required_documents"],
-        },
+        }
+        if show_details
+        else None,
         "source": source,
-        "actions": ["notify_me", "check_status"],
+        "actions": ["notify_me", "check_status"] if show_details else [],
         "language": req.language,
     }
+
+
+@app.get("/api/bursaries")
+def bursaries():
+    """List every constituency's bursary window with a computed live status."""
+    today = datetime.now().date()
+    items = []
+    for c in CONSTITUENCIES.values():
+        opens = datetime.fromisoformat(c["bursary_window"]["opens"]).date()
+        closes = datetime.fromisoformat(c["bursary_window"]["closes"]).date()
+        if today < opens:
+            status_, days = "upcoming", (opens - today).days
+        elif today <= closes:
+            status_, days = "open", (closes - today).days
+        else:
+            status_, days = "closed", 0
+        items.append(
+            {
+                "id": c["id"],
+                "name": c["name"],
+                "county": c["county"],
+                "opens": c["bursary_window"]["opens"],
+                "closes": c["bursary_window"]["closes"],
+                "status": status_,
+                "days": days,
+                "required_documents": c["required_documents"],
+                "eligibility_notes": c["eligibility_notes"],
+                "office": c["office"],
+            }
+        )
+    order = {"open": 0, "upcoming": 1, "closed": 2}
+    items.sort(key=lambda x: (order[x["status"]], x["opens"]))
+    return {"bursaries": items}
 
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { MessageCircle, Phone } from "lucide-react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,15 +43,6 @@ function Logo() {
   );
 }
 
-const values = [
-  ["🔒", "Secure & Private", "Data Protection Act, 2019"],
-  ["👥", "Inclusive Access", "USSD, SMS & Web for everyone"],
-  ["👁️", "Transparent", "Status tracking = accountability"],
-  ["📱", "Local & Simple", "English na Kiswahili"],
-  ["🛡️", "Your Data, Your Control", "Only what is necessary"],
-  ["⭐", "Our Mission", "Equal access to public opportunities"],
-];
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -60,43 +52,28 @@ export default function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <header className="bg-white border-b border-gray-200">
-          <div className="mx-auto max-w-6xl px-6 py-3 flex items-center justify-between">
+          <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
             <Link href="/">
               <Logo />
             </Link>
             <nav className="flex items-center gap-2 text-sm font-medium">
               <Link
                 href="/"
-                className="px-4 py-2 rounded-full text-gray-700 hover:bg-green-50 hover:text-green-800"
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-gray-700 hover:bg-green-50 hover:text-green-800"
               >
-                💬 Web Chat
+                <MessageCircle size={16} /> Web Chat
               </Link>
               <Link
                 href="/ussd"
-                className="px-4 py-2 rounded-full text-gray-700 hover:bg-green-50 hover:text-green-800"
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-gray-700 hover:bg-green-50 hover:text-green-800"
               >
-                ☎️ USSD *123#
+                <Phone size={16} /> USSD *123#
               </Link>
             </nav>
           </div>
         </header>
 
         <main className="flex-1">{children}</main>
-
-        <footer className="bg-white border-t border-gray-200 mt-8">
-          <div className="mx-auto max-w-6xl px-6 py-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
-            {values.map(([icon, title, sub]) => (
-              <div key={title}>
-                <div className="text-lg">{icon}</div>
-                <div className="text-xs font-semibold text-gray-800">{title}</div>
-                <div className="text-[10px] text-gray-500">{sub}</div>
-              </div>
-            ))}
-          </div>
-          <p className="pb-4 text-center text-[11px] text-gray-400">
-            Part of the Mozilla Foundation × KamiLimu Democracy & AI Hackathon — July 4th, 2026
-          </p>
-        </footer>
       </body>
     </html>
   );
