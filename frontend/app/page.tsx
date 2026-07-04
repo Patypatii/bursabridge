@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import {
   BatteryFull,
   Bell,
+  Calendar,
+  ChevronRight,
   Check,
   Eye,
   FileSearch,
@@ -130,6 +132,23 @@ type Details = {
   required_documents: string[];
 };
 
+type Bursary = {
+  id: string;
+  name: string;
+  county: string;
+  opens: string;
+  closes: string;
+  status: "open" | "upcoming" | "closed";
+  days: number;
+  required_documents: string[];
+  eligibility_notes: string;
+  office: {
+    location: string;
+    phone: string;
+    hours: string;
+  };
+};
+
 type StatusData = {
   ref_no: string;
   stage: string;
@@ -168,6 +187,12 @@ const toApiHistory = (items: Msg[]) =>
     })
     .slice(-8);
 
+const statusStyles: Record<Bursary["status"], string> = {
+  open: "bg-green-100 text-green-800",
+  upcoming: "bg-amber-100 text-amber-800",
+  closed: "bg-gray-100 text-gray-600",
+};
+
 /* ---------------- animated status tracker (one screen per stage) ---------------- */
 
 function StatusCard({ data, lang }: { data: StatusData; lang: Lang }) {
@@ -177,6 +202,7 @@ function StatusCard({ data, lang }: { data: StatusData; lang: Lang }) {
     STAGES.findIndex((s) => s.id === data.stage)
   );
   const HeadIcon = STAGES[current].Icon;
+
   return (
     <div className="w-[88%] rounded-2xl bg-white border border-gray-200 p-4 space-y-3">
       <div className="text-center space-y-1">
@@ -262,6 +288,9 @@ export default function ChatPage() {
   const [phone, setPhone] = useState("0712 345 678");
   const [ref, setRef] = useState("OKL-2026-0142");
   const [outbox, setOutbox] = useState<Sms[]>([]);
+  const [bursaries, setBursaries] = useState<Bursary[]>([]);
+  const [bursaryError, setBursaryError] = useState(false);
+  const [selectedBursaryId, setSelectedBursaryId] = useState<string | null>(null);
   const [lastSource, setLastSource] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const t = STRINGS[language];
@@ -270,9 +299,42 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    fetch(`${API}/api/bursaries`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`API returned ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setBursaries(data.bursaries ?? []);
+        setBursaryError(false);
+      })
+      .catch(() => setBursaryError(true));
+  }, []);
+
   const push = (m: Msg) => setMessages((prev) => [...prev, m]);
   const replaceProcessing = (m: Msg) =>
     setMessages((prev) => prev.map((x) => (x.kind === "processing" ? m : x)));
+
+  function showBursaryDetails(bursary: Bursary) {
+    setConstituency(bursary.id);
+    setSelectedBursaryId(bursary.id);
+    push({
+      kind: "answer",
+      text:
+        language === "sw"
+          ? `${bursary.name} inaonyesha dirisha la maombi, nyaraka, na mawasiliano hapa chini.`
+          : `${bursary.name} bursary details are ready below: application window, documents, eligibility, and office contact.`,
+      details: {
+        constituency: bursary.name,
+        opens: bursary.opens,
+        closes: bursary.closes,
+        required_documents: bursary.required_documents,
+      },
+      source: "sample_bursary_list",
+    });
+    setLastSource("sample_bursary_list");
+  }
 
   async function send() {
     const text = input.trim();
@@ -349,6 +411,15 @@ export default function ChatPage() {
     }
   }
 
+  const activeBursary = bursaries.find((b) => b.id === constituency);
+  const smsPreview =
+    activeBursary == null
+      ? "Hello! This is a reminder from BursaBridge. Your selected NG-CDF bursary window is coming up. For help, dial *123#"
+      : `Hello! This is a reminder from BursaBridge. ${activeBursary.name} NG-CDF bursary applications open on ${fmtDate(
+          activeBursary.opens,
+          language
+        )}. For help, dial *123#`;
+
   return (
     <div className="flex w-full flex-col items-center gap-6 px-6 py-3 lg:h-[calc(100vh-5.5rem)] lg:flex-row lg:items-stretch lg:justify-center xl:gap-10 xl:px-12">
       {/* ------------------------------------------------ left: intro (fills left space) */}
@@ -389,6 +460,72 @@ export default function ChatPage() {
                 {l === "en" ? "English" : "Kiswahili"}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-4">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-xs font-bold text-gray-500">AVAILABLE BURSARIES</h2>
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+              demo data
+            </span>
+          </div>
+          {bursaryError && (
+            <p className="rounded-lg bg-red-50 p-2 text-xs text-red-700">
+              Start the backend to load bursary listings.
+            </p>
+          )}
+          <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+            {bursaries.map((b) => {
+              const selected = selectedBursaryId === b.id;
+              return (
+                <div key={b.id} className="rounded-lg border border-gray-200">
+                  <button
+                    onClick={() => showBursaryDetails(b)}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-50"
+                  >
+                    <Calendar size={15} className="shrink-0 text-green-700" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-semibold text-gray-800">
+                        {b.name}
+                      </span>
+                      <span className="block text-[10px] text-gray-500">
+                        {fmtDate(b.opens, language)} - {fmtDate(b.closes, language)}
+                      </span>
+                    </span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] ${statusStyles[b.status]}`}>
+                      {b.status}
+                    </span>
+                    <ChevronRight
+                      size={14}
+                      className={`shrink-0 text-gray-300 transition-transform ${
+                        selected ? "rotate-90" : ""
+                      }`}
+                    />
+                  </button>
+                  {selected && (
+                    <div className="anim-fade-up border-t border-gray-100 px-3 py-2 text-[11px] text-gray-600">
+                      <p className="font-semibold text-gray-800">{b.county} County</p>
+                      <p className="mt-1">{b.eligibility_notes}</p>
+                      <p className="mt-2 font-semibold text-gray-800">{t.requiredDocs}</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {b.required_documents.map((doc) => (
+                          <span key={doc} className="rounded-full bg-green-50 px-2 py-0.5 text-green-800">
+                            {doc}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-gray-500">
+                        {b.office.location} · {b.office.phone} · {b.office.hours}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {!bursaryError && bursaries.length === 0 && (
+              <p className="rounded-lg bg-gray-50 p-2 text-xs text-gray-500">Loading bursaries...</p>
+            )}
           </div>
         </div>
 
@@ -653,10 +790,19 @@ export default function ChatPage() {
             </div>
             <div className="flex-1 space-y-2 overflow-y-auto bg-gray-50 p-3">
               {outbox.length === 0 && (
-                <p className="pt-16 text-center text-xs text-gray-400">
+                <div className="space-y-2">
+                  <p className="text-center text-[11px] font-semibold text-gray-400">
+                    SMS preview before sending
+                  </p>
+                  <div className="anim-fade-up rounded-2xl rounded-bl-sm border border-dashed border-green-300 bg-white p-3 text-xs text-gray-700">
+                    {smsPreview}
+                    <div className="mt-1 text-[10px] text-gray-400">preview</div>
+                  </div>
+                  <p className="text-center text-[11px] text-gray-400">
                   Press “{t.notifyMe}” in the chat —<br /> the SMS that would be sent
                   <br /> appears here.
-                </p>
+                  </p>
+                </div>
               )}
               {outbox.map((s, i) => (
                 <div

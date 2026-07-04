@@ -28,6 +28,11 @@ const OPTIONS = [
   [Globe, "6 Language", "English / Kiswahili"],
 ] as const;
 
+const SMS_PREVIEWS = [
+  "Hello! This is a reminder from BursaBridge. Ol-Kalou NG-CDF bursary applications open on 12 July 2026. For help, dial *123#",
+  "BursaBridge update: Ref OKL-2026-0142 is Review in Progress. Estimated completion: 6 days.",
+] as const;
+
 type LogEntry = { req: string; res: string };
 
 export default function UssdPage() {
@@ -252,6 +257,23 @@ export default function UssdPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-4">
+          <h2 className="mb-2 text-sm font-bold text-green-800">SMS PREVIEWS</h2>
+          <div className="space-y-2">
+            {SMS_PREVIEWS.map((message, i) => (
+              <div
+                key={message}
+                className="anim-fade-up rounded-2xl rounded-bl-sm border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700"
+              >
+                {message}
+                <div className="mt-1 text-[10px] text-gray-400">
+                  {i === 0 ? "deadline reminder" : "status update"}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex min-h-48 flex-col rounded-xl bg-gray-900 p-4 lg:flex-1">
